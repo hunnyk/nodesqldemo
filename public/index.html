@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data">
+    <table id="regtb">
+        <input type="hidden" name="id" id="id">
+        <tr>
+            <td>Name</td>
+            <td><input type="text" name="name" id="name"></td>
+        </tr>
+        <tr>
+            <td>Address</td>
+            <td><input type="text" name="address" id="address"></td>
+        </tr>
+        <tr>
+            <td>Profile Pic</td>
+            <td><input type="file" id="profilepic" name="profilepic"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="submit" id="addclick" value="Add"></td>
+            <td><input type="button" id="editclick" value="Edit"></td>
+        </tr>
+    </table>
+
+</form>
+<form id="form1">
+    <table class="display">
+        <thead>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Action</th>
+        </thead>
+        <tbody id="result-rows">
+        </tbody>
+    </table>
+</form>
+</body>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<link rel='stylesheet' type='text/css' href='https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css'>
+
+<script>
+
+    function getallcustomers()
+    {
+        $.ajax({
+            type: 'GET',
+            //  dataType: "json",
+            data: { },
+            url: 'http://localhost:3000/getall',
+            success: function (data) {
+                var rows;
+               // var uploadpath=path.join(__dirname+"/public/uploads/"+f.name);
+                $.each(data, function (i, item) {
+                    //alert(item.name);
+                    rows += "<tr>"
+                        + "<td>" + item.name + "</td>"
+                        + "<td>" + item.address + "</td>"
+                        + "<td><img src='http://localhost:3000//uploads/"+item.profilepic+"' height='42' width='42'></td>"
+                       // + "<td><img src='__dirname+/public/uploads/"+item.profilepic+" height='42' width='42'></td>"
+                       + '<td><a href="javascript:void(0)" onclick="fetchRow('+item.id+')">Edit</a></td>'
+                        + '<td><a href="javascript:void(0)" onclick="deleteRow(this,'+item.id+')">Remove</a></td>'
+                        + "</tr>";
+                });
+                $(".display tbody").append(rows);
+                $('#addclick').show();
+                $('#editclick').hide();
+            }
+        });
+    }
+
+    function clearall()
+    {
+        document.getElementById('name').value='';
+        document.getElementById('address').value='';
+        document.getElementById('profilepic').value='';
+        $('#result-rows').empty();
+    }
+
+    $(document).ready(function() {
+        getallcustomers();
+
+        $(function(){
+        $('#addclick').click(function(e){
+            // debugger
+            //alert('here');
+            e.preventDefault();
+            var form = new FormData();
+            var name=document.getElementById('name').value;
+            var address=document.getElementById('address').value;
+            var file = document.getElementById('profilepic').files[0];
+            console.log(file);
+            if (file) {
+                form.append('name', name);
+                form.append('address', address);
+                form.append('profilepic', file);
+            }
+
+            $.ajax({
+                type: 'POST',
+                data:form,
+                cache: false,
+                processData: false,
+                contentType: false,
+                url: 'http://localhost:3000/add',
+                success: function(data) {
+                    clearall();
+                    getallcustomers();
+                }
+            });
+        });
+
+    });
+    });
+
+    // $(function(){
+    //     $('#addclick').click(function(e){
+    //         // debugger
+    //         //alert('here');
+    //         e.preventDefault();
+    //         var form = new FormData();
+    //         var data={};
+    //         data.name=document.getElementById('name').value;
+    //         data.address=document.getElementById('address').value;
+    //
+    //
+    //         $.ajax({
+    //             type: 'POST',
+    //             contentType: 'application/json',
+    //             url: 'http://localhost:3000/add',
+    //             success: function(data) {
+    //                 //alert(document.getElementById("name").value);
+    //                 document.getElementById('result-rows').innerHTML +="<tr>"
+    //                     + "<td>"+ document.getElementById("name").value +"</td>"
+    //                     + "<td>" + document.getElementById('address').value + "</td>"
+    //                     + "<td>" + document.getElementById('profilepic').value + "</td>"
+    //                     + "<td><a href='javascript:void(0)' onclick=''>Edit</a></td>"
+    //                     + "<td><a href='javascript:void(0)' onclick=''>Remove</a></td>"
+    //                     +"</tr>";
+    //                 //  console.log('success');
+    //                 console.log(JSON.stringify(data));
+    //                 // $("#tbody").append(data);
+    //             }
+    //         });
+    //     });
+    //
+    // });
+
+    function deleteRow(obj, id) {
+        $.ajax({
+            url: "http://localhost:3000/delete/"+id,
+            type: "GET",
+            data: { 'id': id },
+            success: function(data){
+                //alert(data);
+                $(obj).closest('tr').fadeOut(300,function(){
+                    $(obj).closest('tr').remove();
+                });
+            }
+        });
+    };
+    var edit1id;
+    function fetchRow(id) {
+        edit1id=id;
+        $.ajax({
+            url: "http://localhost:3000/getbyid/"+id,
+            type: "GET",
+            contentType: 'application/json',
+            success: function (data) {
+                console.log(data[0].profilepic);
+                console.log(document.getElementById('profilepic').files[0]);
+                document.getElementById('name').value = data[0].name;
+                document.getElementById('address').value = data[0].address;
+                document.getElementById('profilepic').files[0] = data[0].profilepic;
+                $('#addclick').hide();
+                $('#editclick').show();
+
+            },
+            error: function (err) {
+                alert('err');
+            }
+        });
+    };
+
+    $(function() {
+        $('#editclick').click(function (e) {
+            var data={};
+            var name=document.getElementById('name').value;
+            var address=document.getElementById('address').value;
+            var profilepic=document.getElementById('profilepic').value;
+            //alert(name);
+            $.ajax({
+                type: 'PUT',
+                data: {name: name, address: address,profilepic: profilepic},
+                url: 'http://localhost:3000/edit/'+edit1id,
+                success: function(data) {
+                    $('#name').val(" ");
+                    $('#address').val(" ");
+                    $('#addclick').show();
+                    $('#editclick').hide();
+                    getallcustomers();
+                    clearall();
+                },error:function(data){
+                    alert('err');
+                }
+            });
+        });
+    });
+</script>
+</html>

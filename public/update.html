@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form>
+    <input type="hidden" name="id" id="id">
+    <table>
+        <tr>
+            <td>First Name:</td>
+            <td><input type="text" name="name" id="name"></td>
+        </tr>
+        <tr>
+            <td>Last Name:</td>
+            <td><input type="text" name="address" id="address"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button type="button" id="updclk">Update</button> </td>
+        </tr>
+    </table>
+
+</form>
+<form id="form1">
+    <table class="display">
+        <thead>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Action</th>
+        </thead>
+        <tbody id="result-rows">
+        </tbody>
+    </table>
+</form>
+</body>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<link rel='stylesheet' type='text/css' href='https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css'>
+<script>
+
+    $(document).ready(function() {
+        var data={};
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var c = url.searchParams.get("id");
+        console.log(c);
+        data.id=c;
+        $.ajax({
+            type: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            url: 'http://localhost:3000/updatedata',
+            success: function(data) {
+                console.log('success');
+                console.log(JSON.stringify(data));
+                //header.location("");
+                //location.href ="index.html";
+                document.getElementById('name').value=data.name;
+                document.getElementById('address').value=data.address;
+
+            }
+        });
+    });
+    $(function(){
+        $('#updclk').click(function(e){
+            var data={};
+            data.name=document.getElementById('name').value;
+            data.address=document.getElementById('address').value;
+             $.ajax({
+                type: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                url: 'http://localhost:3000/update',
+                success: function(data) {
+                    console.log('success');
+                    console.log(JSON.stringify(data));
+                    //header.location("");
+                    location.href ="index.html";
+                }
+            });
+        });
+    });
+
+</script>
+</html>
